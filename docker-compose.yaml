@@ -1,0 +1,53 @@
+
+services:
+  # Ubuntu + Postgres (Rede Frontend)
+  ubuntu_server:
+    build:
+      context: .
+      dockerfile: dockerfile.ubuntu.conf
+    container_name: ubuntu_srv
+    networks:
+      - frontend_net
+    depends_on:
+      - postgres_db
+
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - frontend_net
+
+  # Debian + MariaDB (Rede Backend)
+  debian_server:
+    image: debian:stable-slim
+    container_name: debian_srv
+    stdin_open: true
+    tty: true
+    networks:
+      - backend_net
+    depends_on:
+      - mariadb_db
+
+  mariadb_db:
+    image: mariadb:10.11
+    container_name: mariadb_db
+    environment:
+      MARIADB_ROOT_PASSWORD: mypassword
+    volumes:
+      - mariadb_data:/var/lib/maria
+    networks:
+      - backend_net
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mariadb_data:
